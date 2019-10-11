@@ -1,7 +1,6 @@
 package com.paysera.lib.common.entities
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.interfaces.DecodedJWT
+import com.paysera.lib.common.jwt.JWT
 import java.lang.Exception
 import java.util.*
 
@@ -13,10 +12,10 @@ class ApiCredentials constructor(token: String?) {
             field = value
         }
         get() {
-            return jwt?.token
+            return jwt?.toString()
         }
 
-    private var jwt: DecodedJWT? = null
+    private var jwt: JWT? = null
 
     init {
         decodeJWT(token)
@@ -39,8 +38,9 @@ class ApiCredentials constructor(token: String?) {
     }
 
     private fun decodeJWT(token: String?) {
+        token ?: return
         try {
-            jwt = JWT.decode(token)
+            jwt = JWT(token)
         } catch (e: Exception) { }
     }
 }
