@@ -15,6 +15,7 @@ import org.joda.money.Money
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?) {
 
@@ -44,6 +45,9 @@ abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCre
 
     private fun createOkHttpClient(): OkHttpClient {
         return with(OkHttpClient().newBuilder()) {
+            readTimeout(5, TimeUnit.MINUTES)
+            writeTimeout(5, TimeUnit.MINUTES)
+            connectTimeout(1, TimeUnit.MINUTES)
             credentials?.let {
                 addInterceptor { chain ->
                     val originalRequest = chain.request()
