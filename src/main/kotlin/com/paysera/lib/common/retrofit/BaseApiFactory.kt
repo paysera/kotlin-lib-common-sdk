@@ -17,7 +17,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?, private val defaultTimeout: Long = 1200000) {
+abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?, private val timeout: Long?) {
 
     abstract fun createClient(baseUrl: String, tokenRefresher: TokenRefresherInterface?): T
 
@@ -45,9 +45,11 @@ abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCre
 
     private fun createOkHttpClient(): OkHttpClient {
         return with(OkHttpClient().newBuilder()) {
-            readTimeout(defaultTimeout, TimeUnit.MILLISECONDS)
-            writeTimeout(defaultTimeout, TimeUnit.MILLISECONDS)
-            connectTimeout(defaultTimeout, TimeUnit.MILLISECONDS)
+            timeout?.let {
+                readTimeout(it, TimeUnit.MILLISECONDS)
+                writeTimeout(it, TimeUnit.MILLISECONDS)
+                connectTimeout(it, TimeUnit.MILLISECONDS)
+            }
             credentials?.let {
                 addInterceptor { chain ->
                     val originalRequest = chain.request()
