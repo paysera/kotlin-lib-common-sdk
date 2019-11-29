@@ -17,7 +17,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?, private val timeout: Long?) {
+abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?, private val timeout: Long? = null) {
 
     abstract fun createClient(baseUrl: String, tokenRefresher: TokenRefresherInterface?): T
 
