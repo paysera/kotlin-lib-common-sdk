@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
 import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
 import com.paysera.lib.common.entities.ApiCredentials
-import com.paysera.lib.common.interfaces.BaseApiClient
+import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
@@ -17,21 +17,36 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-abstract class BaseApiFactory<T : BaseApiClient>(private val credentials: ApiCredentials?, private val timeout: Long? = null) {
+typealias RetrofitConfiguration = Pair<Retrofit, ApiRequestManager>
 
+abstract class BaseApiFactory<T : BaseApiClient>(
+    private val credentials: ApiCredentials?,
+    private val timeout: Long? = null
+) {
     abstract fun createClient(baseUrl: String, tokenRefresher: TokenRefresherInterface?): T
 
-    protected fun createRetrofit(baseUrl: String, tokenRefresher: TokenRefresherInterface?): Retrofit {
-        return with(Retrofit.Builder()) {
-            baseUrl(baseUrl)
-            if (tokenRefresher != null && credentials != null) {
-                addCallAdapterFactory(RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher))
-            } else {
-                addCallAdapterFactory(CoroutineCallAdapterFactory())
+    protected fun createRetrofit(
+        baseUrl: String,
+        tokenRefresher: TokenRefresherInterface?
+    ): RetrofitConfiguration {
+        val okHttpClient = createOkHttpClient()
+        val callAdapterFactory = when {
+            tokenRefresher != null && credentials != null -> {
+                RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher)
             }
+            else -> CoroutineCallAdapterFactory()
+        }
+        with(Retrofit.Builder()) {
+            baseUrl(baseUrl)
+            addCallAdapterFactory(callAdapterFactory)
             addConverterFactory(createGsonConverterFactory())
-            client(createOkHttpClient())
+            client(okHttpClient)
             build()
+        }.apply {
+            return RetrofitConfiguration(
+                this,
+                ApiRequestManager(okHttpClient, cancellableCallAdapterFactories())
+            )
         }
     }
 

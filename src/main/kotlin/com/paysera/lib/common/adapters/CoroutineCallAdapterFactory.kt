@@ -62,7 +62,7 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                request.deferred.completeExceptionally(ApiError.noInternet())
+                request.deferred.completeExceptionally(t)
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
