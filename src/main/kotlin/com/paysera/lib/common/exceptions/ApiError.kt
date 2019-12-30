@@ -13,7 +13,8 @@ class ApiError : Exception {
     var properties: List<ApiErrorProperty>? = null
     @SerializedName("errors")
     var errorFields: List<ApiErrorField>? = null
-    var errorData: Any? = null
+    @SerializedName("error_data")
+    var data: Any? = null
 
     constructor(error: String? = null, description: String? = null, statusCode: Int? = null) {
         this.error = error
