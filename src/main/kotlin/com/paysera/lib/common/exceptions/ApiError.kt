@@ -59,5 +59,9 @@ class ApiError : Exception {
         fun unknown(): ApiError {
             return ApiError("unknown")
         }
+
+        fun cancelled(): ApiError {
+            return ApiError("cancelled")
+        }
     }
 }

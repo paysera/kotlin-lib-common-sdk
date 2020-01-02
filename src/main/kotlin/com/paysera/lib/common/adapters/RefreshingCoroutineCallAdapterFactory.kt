@@ -3,6 +3,7 @@ package com.paysera.lib.common.adapters
 import com.google.gson.Gson
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.interfaces.CancellableAdapterFactory
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -13,7 +14,7 @@ import java.lang.reflect.Type
 class RefreshingCoroutineCallAdapterFactory private constructor(
     private val credentials: ApiCredentials,
     private val tokenRefresher: TokenRefresherInterface
-) : CallAdapter.Factory() {
+) : CallAdapter.Factory(), CancellableAdapterFactory {
 
     companion object {
         @JvmStatic @JvmName("create")
@@ -83,7 +84,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                request.deferred.completeExceptionally(ApiError.noInternet())
+                request.deferred.completeExceptionally(t)
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
@@ -172,5 +173,11 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 it.responseType = responseType
             }
         }
+    }
+
+    //  CancellableAdapterFactory
+
+    override fun cancelCalls() {
+        cancelQueue(ApiError.cancelled())
     }
 }
