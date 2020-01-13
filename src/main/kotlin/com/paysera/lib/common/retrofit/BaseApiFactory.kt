@@ -18,6 +18,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(
+    private val userAgent: String?,
     private val credentials: ApiCredentials?,
     private val timeout: Long? = null
 ) {
@@ -63,11 +64,16 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 writeTimeout(it, TimeUnit.MILLISECONDS)
                 connectTimeout(it, TimeUnit.MILLISECONDS)
             }
-            credentials?.let {
+            if (credentials != null || userAgent != null) {
                 addInterceptor { chain ->
                     val originalRequest = chain.request()
-                    val builder =
-                        originalRequest.newBuilder().header("Authorization", "Bearer ${credentials.token}")
+                    val builder = originalRequest.newBuilder()
+                    userAgent?.let {
+                        builder.header("User-Agent", it)
+                    }
+                    credentials?.let {
+                        builder.header("Authorization", "Bearer ${it.token}")
+                    }
                     val modifiedRequest = builder.build()
                     chain.proceed(modifiedRequest)
                 }
