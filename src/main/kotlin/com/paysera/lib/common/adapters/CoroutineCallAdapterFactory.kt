@@ -79,11 +79,15 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
         })
     }
 
-    private fun mapError(response: Response<Any>): ApiError {
+    private fun mapError(response: Response<Any>): Exception {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
-        val error = gson.fromJson<ApiError>(responseString, ApiError::class.java)
-        error.statusCode = response.code()
-        return error
+        return try {
+            gson.fromJson<ApiError>(responseString, ApiError::class.java).apply {
+                statusCode = response.code()
+            }
+        } catch (e: Exception) {
+            Exception(responseString)
+        }
     }
 
     override fun get(

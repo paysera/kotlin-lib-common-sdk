@@ -8,6 +8,7 @@ class ApiError : Exception {
     var error: String? = null
     @SerializedName("error_description")
     var description: String? = null
+    @SerializedName("status_code")
     var statusCode: Int? = null
     @SerializedName("error_properties")
     var properties: List<ApiErrorProperty>? = null
