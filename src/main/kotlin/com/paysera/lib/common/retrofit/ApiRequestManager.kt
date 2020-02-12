@@ -11,6 +11,6 @@ class ApiRequestManager(
         requestAdapters.forEach {
             it.cancelCalls()
         }
-        okHttpClient.dispatcher().cancelAll()
+        okHttpClient.dispatcher.cancelAll()
     }
 }
