@@ -80,6 +80,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 }
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
+            retryOnConnectionFailure(false)
             build()
         }
     }
