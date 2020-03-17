@@ -43,10 +43,15 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             }
 
             synchronized(tokenRefresher) {
-                if (tokenRefresher.isRefreshing()) {
-                    requestQueue.add(CallAdapterRequest(call.clone(), deferred))
-                } else {
-                    makeRequest(CallAdapterRequest(call, deferred))
+                when {
+                    tokenRefresher.isRefreshing() -> {
+                        requestQueue.add(CallAdapterRequest(call.clone(), deferred))
+                    }
+                    credentials.hasExpired() -> {
+                        requestQueue.add(CallAdapterRequest(call.clone(), deferred))
+                        refreshToken()
+                    }
+                    else -> makeRequest(CallAdapterRequest(call, deferred))
                 }
             }
 
@@ -70,10 +75,15 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             }
 
             synchronized(tokenRefresher) {
-                if (tokenRefresher.isRefreshing()) {
-                    requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
-                } else {
-                    makeRequest(CallAdapterRequest(call, deferred, true))
+                when {
+                    tokenRefresher.isRefreshing() -> {
+                        requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
+                    }
+                    credentials.hasExpired() -> {
+                        requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
+                        refreshToken()
+                    }
+                    else -> makeRequest(CallAdapterRequest(call, deferred, true))
                 }
             }
 
@@ -104,15 +114,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                             } else {
                                 requestQueue.add(request.clone())
                                 if (!tokenRefresher.isRefreshing()) {
-                                    tokenRefresher.refreshToken().invokeOnCompletion { error ->
-                                        synchronized(tokenRefresher) {
-                                            if (error != null) {
-                                                cancelQueue(ApiError.unauthorized())
-                                            } else {
-                                                resumeQueue()
-                                            }
-                                        }
-                                    }
+                                    refreshToken()
                                 }
                             }
                         }
@@ -122,6 +124,18 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 }
             }
         })
+    }
+
+    private fun refreshToken() {
+        tokenRefresher.refreshToken().invokeOnCompletion { error ->
+            synchronized(tokenRefresher) {
+                if (error != null) {
+                    cancelQueue(ApiError.unauthorized())
+                } else {
+                    resumeQueue()
+                }
+            }
+        }
     }
 
     private fun resumeQueue() {

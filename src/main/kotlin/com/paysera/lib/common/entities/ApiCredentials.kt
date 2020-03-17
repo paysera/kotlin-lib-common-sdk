@@ -4,7 +4,10 @@ import com.paysera.lib.common.jwt.JWT
 import java.lang.Exception
 import java.util.*
 
-class ApiCredentials constructor(token: String?) {
+class ApiCredentials constructor(
+    token: String?,
+    private val expirationLeeway: Long
+) {
 
     var token: String? = null
         set(value) {
@@ -24,7 +27,7 @@ class ApiCredentials constructor(token: String?) {
     fun hasExpired(): Boolean {
         val expirationTime = jwt?.expiresAt?.time
         if (expirationTime != null) {
-            return expirationTime.minus(Date().time) < 120 * 1000
+            return expirationTime.minus(Date().time) < expirationLeeway
         }
         return true
     }
