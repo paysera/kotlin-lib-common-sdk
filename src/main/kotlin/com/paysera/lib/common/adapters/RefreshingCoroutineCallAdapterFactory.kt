@@ -44,12 +44,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
             synchronized(tokenRefresher) {
                 when {
-                    tokenRefresher.isRefreshing() -> {
+                    tokenRefresher.isRefreshing() || credentials.hasExpired() -> {
                         requestQueue.add(CallAdapterRequest(call.clone(), deferred))
-                    }
-                    credentials.hasExpired() -> {
-                        requestQueue.add(CallAdapterRequest(call.clone(), deferred))
-                        refreshToken()
+                        invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred))
                 }
@@ -76,12 +73,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
             synchronized(tokenRefresher) {
                 when {
-                    tokenRefresher.isRefreshing() -> {
+                    tokenRefresher.isRefreshing() || credentials.hasExpired() -> {
                         requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
-                    }
-                    credentials.hasExpired() -> {
-                        requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
-                        refreshToken()
+                        invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred, true))
                 }
@@ -113,9 +107,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                                 makeRequest(request.clone())
                             } else {
                                 requestQueue.add(request.clone())
-                                if (!tokenRefresher.isRefreshing()) {
-                                    refreshToken()
-                                }
+                                invokeRefreshToken()
                             }
                         }
                     } else {
@@ -126,7 +118,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         })
     }
 
-    private fun refreshToken() {
+    private fun invokeRefreshToken() {
         tokenRefresher.refreshToken().invokeOnCompletion { error ->
             synchronized(tokenRefresher) {
                 if (error != null) {
