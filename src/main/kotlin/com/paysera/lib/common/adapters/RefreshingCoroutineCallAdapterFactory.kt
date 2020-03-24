@@ -26,6 +26,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
     private val gson = Gson()
     private val requestQueue = mutableListOf<CallAdapterRequest>()
+    private var isRefreshTokenProcessing = false
 
     private val bodyCallAdapter = object : CallAdapter<Any, Deferred<Any>> {
 
@@ -42,9 +43,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 }
             }
 
-            synchronized(tokenRefresher) {
+            synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
-                    tokenRefresher.isRefreshing() || credentials.hasExpired() -> {
+                    credentials.hasExpired() -> {
                         requestQueue.add(CallAdapterRequest(call.clone(), deferred))
                         invokeRefreshToken()
                     }
@@ -71,9 +72,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 }
             }
 
-            synchronized(tokenRefresher) {
+            synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
-                    tokenRefresher.isRefreshing() || credentials.hasExpired() -> {
+                    credentials.hasExpired() -> {
                         requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
                         invokeRefreshToken()
                     }
@@ -102,7 +103,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                     val exception = HttpException(response)
                     val isUnauthorized = exception.code() == 401
                     if (isUnauthorized) {
-                        synchronized(tokenRefresher) {
+                        synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                             if (credentials.hasRecentlyRefreshed()) {
                                 makeRequest(request.clone())
                             } else {
@@ -119,12 +120,19 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     }
 
     private fun invokeRefreshToken() {
+        if (isRefreshTokenProcessing) {
+            return
+        }
+        isRefreshTokenProcessing = true
+
         tokenRefresher.refreshToken().invokeOnCompletion { error ->
-            synchronized(tokenRefresher) {
+            synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 if (error != null) {
                     cancelQueue(ApiError.unauthorized())
+                    isRefreshTokenProcessing = false
                 } else {
                     resumeQueue()
+                    isRefreshTokenProcessing = false
                 }
             }
         }
@@ -146,7 +154,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
     private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
-        val error = gson.fromJson<ApiError>(responseString, ApiError::class.java)
+        val error = gson.fromJson(responseString, ApiError::class.java)
         error.statusCode = response.code()
         return error
     }
