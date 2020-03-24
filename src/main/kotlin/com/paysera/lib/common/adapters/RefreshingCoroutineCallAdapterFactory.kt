@@ -129,11 +129,10 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 if (error != null) {
                     cancelQueue(ApiError.unauthorized())
-                    isRefreshTokenProcessing = false
                 } else {
                     resumeQueue()
-                    isRefreshTokenProcessing = false
                 }
+                isRefreshTokenProcessing = false
             }
         }
     }
