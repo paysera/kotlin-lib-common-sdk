@@ -16,7 +16,7 @@ class MoneySerializer : JsonDeserializer<Money>, JsonSerializer<Money> {
 
     override fun serialize(src: Money?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
         val amountObject = JsonObject()
-        amountObject.addProperty("amount", src?.amount)
+        amountObject.addProperty("amount", src?.amount?.toPlainString())
         amountObject.addProperty("currency", src?.currencyUnit?.currencyCode)
         return amountObject
     }
