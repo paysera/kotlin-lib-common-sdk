@@ -18,7 +18,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
 abstract class BaseApiFactory<T : BaseApiClient>(
     private val userAgent: String?,
     private val credentials: ApiCredentials?,
