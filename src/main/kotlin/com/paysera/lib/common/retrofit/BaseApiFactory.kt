@@ -9,6 +9,7 @@ import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
+import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.money.Money
@@ -23,12 +24,12 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     private val timeout: Long? = null,
     private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC
 ) {
-    abstract fun createClient(baseUrl: String, tokenRefresher: TokenRefresherInterface?): T
+    abstract val baseUrl: String
+    abstract val certifiedHosts: List<String>
 
-    protected fun createRetrofit(
-        baseUrl: String,
-        tokenRefresher: TokenRefresherInterface?
-    ): RetrofitConfiguration {
+    abstract fun createClient(tokenRefresher: TokenRefresherInterface?): T
+
+    protected fun createRetrofit(tokenRefresher: TokenRefresherInterface?): RetrofitConfiguration {
         val okHttpClient = createOkHttpClient()
         val callAdapterFactory = when {
             tokenRefresher != null && credentials != null -> {
@@ -59,6 +60,12 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     }
 
     private fun createOkHttpClient(): OkHttpClient {
+        val certificatePinnerBuilder = CertificatePinner.Builder().apply {
+            certifiedHosts.forEach {
+                add(it, "sha256/K8WscGYwD51wz79WudzZPDSXFRYrKM+e78Y5YQZJG3k=")
+                add(it, "sha256/9ay/M3fmRBbc/7R5Nqts0SuDQK8KjAHUSZlLCxEPsH0=")
+            }
+        }
         return with(OkHttpClient().newBuilder()) {
             timeout?.let {
                 readTimeout(it, TimeUnit.MILLISECONDS)
@@ -81,6 +88,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
             retryOnConnectionFailure(false)
+            certificatePinner(certificatePinnerBuilder.build())
             build()
         }
     }
