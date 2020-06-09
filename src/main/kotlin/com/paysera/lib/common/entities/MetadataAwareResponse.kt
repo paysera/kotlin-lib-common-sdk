@@ -1,9 +1,9 @@
 package com.paysera.lib.common.entities
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
 
 data class MetadataAwareResponse <T> (
     val items: List<T>,
-    @SerializedName("_metadata")
+    @Json(name = "_metadata")
     val metadata: Metadata
 )

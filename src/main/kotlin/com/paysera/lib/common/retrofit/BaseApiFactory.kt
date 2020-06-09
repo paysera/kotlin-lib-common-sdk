@@ -1,21 +1,19 @@
 package com.paysera.lib.common.retrofit
 
-import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
-import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
 import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
-import com.paysera.lib.common.serializers.DateSerializer
-import com.paysera.lib.common.serializers.MoneySerializer
+import com.paysera.lib.common.serializers.BigDecimalAdapter
+import com.paysera.lib.common.serializers.DateAdapter
+import com.paysera.lib.common.serializers.MoneyAdapter
+import com.squareup.moshi.Moshi
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.joda.money.Money
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.*
+import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(
@@ -40,7 +38,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
         with(Retrofit.Builder()) {
             baseUrl(baseUrl)
             addCallAdapterFactory(callAdapterFactory)
-            addConverterFactory(createGsonConverterFactory())
+            addConverterFactory(createMoshiConverterFactory())
             client(okHttpClient)
             build()
         }.apply {
@@ -51,12 +49,12 @@ abstract class BaseApiFactory<T : BaseApiClient>(
         }
     }
 
-    protected open fun createGsonConverterFactory(): GsonConverterFactory {
-        val gsonBuilder = GsonBuilder()
-        gsonBuilder.setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
-        gsonBuilder.registerTypeAdapter(Money::class.java, MoneySerializer())
-        gsonBuilder.registerTypeAdapter(Date::class.java, DateSerializer())
-        return GsonConverterFactory.create(gsonBuilder.create())
+    protected open fun createMoshiConverterFactory(): MoshiConverterFactory {
+        val moshiBuilder = Moshi.Builder()
+            .add(BigDecimalAdapter())
+            .add(DateAdapter())
+            .add(MoneyAdapter())
+        return MoshiConverterFactory.create(moshiBuilder.build())
     }
 
     private fun createOkHttpClient(): OkHttpClient {
