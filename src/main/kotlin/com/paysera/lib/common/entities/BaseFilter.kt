@@ -1,7 +1,9 @@
 package com.paysera.lib.common.entities
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 open class BaseFilter(
     var offset: Int? = null,
     var limit: Int? = null,
