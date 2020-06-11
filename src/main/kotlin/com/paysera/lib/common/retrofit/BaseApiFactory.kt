@@ -5,9 +5,10 @@ import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
-import com.paysera.lib.common.serializers.BigDecimalAdapter
-import com.paysera.lib.common.serializers.DateAdapter
-import com.paysera.lib.common.serializers.MoneyAdapter
+import com.paysera.lib.common.moshi.adapters.BigDecimalAdapter
+import com.paysera.lib.common.moshi.adapters.DateAdapter
+import com.paysera.lib.common.moshi.adapters.MetadataAwareResponseAdapter
+import com.paysera.lib.common.moshi.adapters.MoneyAdapter
 import com.squareup.moshi.Moshi
 import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
@@ -54,6 +55,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
             .add(BigDecimalAdapter())
             .add(DateAdapter())
             .add(MoneyAdapter())
+            .add(MetadataAwareResponseAdapter.Factory)
         return MoshiConverterFactory.create(moshiBuilder.build())
     }
 

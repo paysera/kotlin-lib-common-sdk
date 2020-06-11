@@ -1,4 +1,4 @@
-package com.paysera.lib.common.serializers.entities
+package com.paysera.lib.common.moshi.entities
 
 import com.squareup.moshi.JsonClass
 import java.math.BigDecimal

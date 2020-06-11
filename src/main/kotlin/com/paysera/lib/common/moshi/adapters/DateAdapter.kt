@@ -1,4 +1,4 @@
-package com.paysera.lib.common.serializers
+package com.paysera.lib.common.moshi.adapters
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson

@@ -1,6 +1,6 @@
-package com.paysera.lib.common.serializers
+package com.paysera.lib.common.moshi.adapters
 
-import com.paysera.lib.common.serializers.entities.MoneyJson
+import com.paysera.lib.common.moshi.entities.MoneyJson
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
 import org.joda.money.CurrencyUnit
