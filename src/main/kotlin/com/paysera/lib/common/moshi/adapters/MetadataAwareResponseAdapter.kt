@@ -20,9 +20,8 @@ class MetadataAwareResponseAdapter<T : Any>(
             val paramType = type as? ParameterizedType ?: return null
             if (paramType.rawType != MetadataAwareResponse::class.java) return null
             if (paramType.actualTypeArguments.size != 1) return null
-            val argTypeName = paramType.actualTypeArguments[0].typeName
-            val argType = Class.forName(argTypeName) as Class<Any>
-            val adapter = moshi.adapter(argType)
+            val argType = paramType.actualTypeArguments[0]
+            val adapter = moshi.adapter<Any>(argType)
 
             return MetadataAwareResponseAdapter(moshi, adapter)
         }

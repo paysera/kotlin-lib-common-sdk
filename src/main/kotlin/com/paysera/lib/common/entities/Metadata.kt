@@ -9,7 +9,7 @@ data class Metadata(
     val limit: Int,
     val offset: Int,
     @Json(name = "has_next")
-    val hasNext: Boolean,
+    val hasNext: Boolean?,
     @Json(name = "has_previous")
-    val hasPrevious: Boolean
+    val hasPrevious: Boolean?
 )
