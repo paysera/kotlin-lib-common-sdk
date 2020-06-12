@@ -1,20 +1,14 @@
 package com.paysera.lib.common.exceptions
 
-import com.squareup.moshi.Json
 import java.lang.Exception
 
 class ApiError : Exception {
 
     var error: String? = null
-    @Json(name = "error_description")
     var description: String? = null
-    @Json(name = "status_code")
     var statusCode: Int? = null
-    @Json(name = "error_properties")
     var properties: List<ApiErrorProperty>? = null
-    @Json(name = "errors")
     var errorFields: List<ApiErrorField>? = null
-    @Json(name = "error_data")
     var data: Any? = null
 
     constructor(error: String? = null, description: String? = null, statusCode: Int? = null) {
