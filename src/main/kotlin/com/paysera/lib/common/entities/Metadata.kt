@@ -5,9 +5,9 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class Metadata(
-    val total: Int? = 0,
-    val limit: Int? = 0,
-    val offset: Int? = 0,
+    val total: Int?,
+    val limit: Int?,
+    val offset: Int?,
     @Json(name = "has_next")
     val hasNext: Boolean?,
     @Json(name = "has_previous")
