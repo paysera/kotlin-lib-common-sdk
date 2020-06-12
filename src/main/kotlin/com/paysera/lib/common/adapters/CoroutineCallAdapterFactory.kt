@@ -1,6 +1,7 @@
 package com.paysera.lib.common.adapters
 
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.moshi.adapters.ApiErrorAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -15,7 +16,7 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
         operator fun invoke() = CoroutineCallAdapterFactory()
     }
 
-    private val moshi = Moshi.Builder().build()
+    private val moshi = Moshi.Builder().add(ApiErrorAdapter()).build()
 
     private val bodyCallAdapter = object : CallAdapter<Any, Deferred<Any>> {
 

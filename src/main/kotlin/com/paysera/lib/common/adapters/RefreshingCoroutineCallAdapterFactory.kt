@@ -4,6 +4,7 @@ import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
+import com.paysera.lib.common.moshi.adapters.ApiErrorAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -24,7 +25,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher)
     }
 
-    private val moshi = Moshi.Builder().build()
+    private val moshi = Moshi.Builder().add(ApiErrorAdapter()).build()
     private val requestQueue = mutableListOf<CallAdapterRequest>()
     private var isRefreshTokenProcessing = false
 
