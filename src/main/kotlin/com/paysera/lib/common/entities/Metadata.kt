@@ -5,11 +5,11 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class Metadata(
-    val total: Int = 0,
-    val limit: Int = 0,
-    val offset: Int = 0,
+    val total: Int? = 0,
+    val limit: Int? = 0,
+    val offset: Int? = 0,
     @Json(name = "has_next")
-    val hasNext: Boolean? = false,
+    val hasNext: Boolean?,
     @Json(name = "has_previous")
-    val hasPrevious: Boolean? = false
+    val hasPrevious: Boolean?
 )
