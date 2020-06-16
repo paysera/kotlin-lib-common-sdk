@@ -27,6 +27,8 @@ class MetadataAwareResponseAdapter<T : Any>(
         }
     }
 
+    override fun toJson(writer: JsonWriter, value: MetadataAwareResponse<T>?) {}
+
     override fun fromJson(reader: JsonReader): MetadataAwareResponse<T> {
         val items = arrayListOf<T>()
         var metadata: Metadata? = null
@@ -48,6 +50,4 @@ class MetadataAwareResponseAdapter<T : Any>(
 
         return MetadataAwareResponse(items, metadata!!)
     }
-
-    override fun toJson(writer: JsonWriter, value: MetadataAwareResponse<T>?) {}
 }

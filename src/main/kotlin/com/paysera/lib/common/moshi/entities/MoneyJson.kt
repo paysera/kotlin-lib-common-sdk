@@ -5,6 +5,6 @@ import java.math.BigDecimal
 
 @JsonClass(generateAdapter = true)
 data class MoneyJson(
-    val amount: BigDecimal,
-    val currency: String
+    val amount: BigDecimal? = null,
+    val currency: String? = null
 )

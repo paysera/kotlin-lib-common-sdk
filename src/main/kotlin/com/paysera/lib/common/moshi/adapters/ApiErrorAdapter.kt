@@ -7,6 +7,18 @@ import com.squareup.moshi.ToJson
 
 class ApiErrorAdapter {
 
+    @ToJson
+    fun toJson(apiError: ApiError?): ApiErrorJson {
+        return ApiErrorJson(
+            apiError?.error,
+            apiError?.description,
+            apiError?.statusCode,
+            apiError?.properties,
+            apiError?.errorFields,
+            apiError?.data
+        )
+    }
+
     @FromJson
     fun fromJson(apiError: ApiErrorJson): ApiError {
         val error = ApiError(apiError.error, apiError.description, apiError.statusCode)
@@ -16,17 +28,5 @@ class ApiErrorAdapter {
             data = apiError.data
         }
         return error
-    }
-
-    @ToJson
-    fun toJson(apiError: ApiError): ApiErrorJson {
-        return ApiErrorJson(
-            apiError.error,
-            apiError.description,
-            apiError.statusCode,
-            apiError.properties,
-            apiError.errorFields,
-            apiError.data
-        )
     }
 }

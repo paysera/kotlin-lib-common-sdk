@@ -8,13 +8,13 @@ import org.joda.money.Money
 
 class MoneyAdapter {
 
+    @ToJson
+    fun toJson(money: Money?): MoneyJson {
+        return MoneyJson(money?.amount, money?.currencyUnit?.currencyCode)
+    }
+
     @FromJson
     fun fromJson(money: MoneyJson): Money {
         return Money.of(CurrencyUnit.of(money.currency), money.amount)
-    }
-
-    @ToJson
-    fun toJson(money: Money): MoneyJson {
-        return MoneyJson(money.amount, money.currencyUnit.currencyCode)
     }
 }
