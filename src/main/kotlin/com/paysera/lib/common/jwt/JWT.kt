@@ -1,10 +1,8 @@
 package com.paysera.lib.common.jwt
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import java.io.UnsupportedEncodingException
-import java.lang.reflect.Type
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
@@ -69,11 +67,12 @@ class JWT(private val token: String) {
 
     private fun decode(token: String) {
         val parts = splitToken(token)
-        val mapType = object : TypeToken<Map<String, String>>() {
-
-        }.type
-        header = parseJson<Map<String, String>>(base64Decode(parts[0]), mapType)
-        payload = parseJson<JWTPayload>(base64Decode(parts[1]), JWTPayload::class.java)
+        val headerAdapter = moshi.adapter<Map<String, String>>(
+            Types.newParameterizedType(Map::class.java, String::class.java, String::class.java)
+        )
+        val payloadAdapter = moshi.adapter(JWTPayload::class.java)
+        header = headerAdapter.fromJson(base64Decode(parts[0]))
+        payload = payloadAdapter.fromJson(base64Decode(parts[1]))
         signature = parts[2]
     }
 
@@ -103,22 +102,11 @@ class JWT(private val token: String) {
         return decoded
     }
 
-    private fun <T> parseJson(json: String, typeOfT: Type): T? {
-        val payload: T
-        try {
-            payload = gson.fromJson(json, typeOfT)
-        } catch (e: Exception) {
-            throw DecodeException("The token's payload had an invalid JSON format.", e)
-        }
-
-        return payload
-    }
-
     companion object {
 
-        internal val gson: Gson
-            get() = GsonBuilder()
-                .registerTypeAdapter(JWTPayload::class.java, JWTDeserializer())
-                .create()
+        internal val moshi: Moshi
+            get() = Moshi.Builder()
+                .add(JWTDeserializer())
+                .build()
     }
 }

@@ -1,7 +1,8 @@
 package com.paysera.lib.common.adapters
 
-import com.google.gson.Gson
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.moshi.adapters.ApiErrorAdapter
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -15,7 +16,7 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
         operator fun invoke() = CoroutineCallAdapterFactory()
     }
 
-    private val gson = Gson()
+    private val moshi = Moshi.Builder().add(ApiErrorAdapter()).build()
 
     private val bodyCallAdapter = object : CallAdapter<Any, Deferred<Any>> {
 
@@ -82,7 +83,7 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
     private fun mapError(response: Response<Any>): Exception {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
         return try {
-            gson.fromJson<ApiError>(responseString, ApiError::class.java).apply {
+            moshi.adapter(ApiError::class.java).fromJson(responseString)!!.apply {
                 statusCode = response.code()
             }
         } catch (e: Exception) {

@@ -1,10 +1,11 @@
 package com.paysera.lib.common.adapters
 
-import com.google.gson.Gson
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
+import com.paysera.lib.common.moshi.adapters.ApiErrorAdapter
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -24,7 +25,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher)
     }
 
-    private val gson = Gson()
+    private val moshi = Moshi.Builder().add(ApiErrorAdapter()).build()
     private val requestQueue = mutableListOf<CallAdapterRequest>()
     private var isRefreshTokenProcessing = false
 
@@ -153,7 +154,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
     private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
-        val error = gson.fromJson(responseString, ApiError::class.java)
+        val error = moshi.adapter(ApiError::class.java).fromJson(responseString)!!
         error.statusCode = response.code()
         return error
     }

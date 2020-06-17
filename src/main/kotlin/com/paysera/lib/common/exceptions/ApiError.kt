@@ -1,20 +1,14 @@
 package com.paysera.lib.common.exceptions
 
-import com.google.gson.annotations.SerializedName
 import java.lang.Exception
 
 class ApiError : Exception {
 
     var error: String? = null
-    @SerializedName("error_description")
     var description: String? = null
-    @SerializedName("status_code")
     var statusCode: Int? = null
-    @SerializedName("error_properties")
     var properties: List<ApiErrorProperty>? = null
-    @SerializedName("errors")
     var errorFields: List<ApiErrorField>? = null
-    @SerializedName("error_data")
     var data: Any? = null
 
     constructor(error: String? = null, description: String? = null, statusCode: Int? = null) {
