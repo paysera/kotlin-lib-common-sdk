@@ -92,8 +92,8 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                errorLogger.log(call.request(), t)
-                request.deferred.completeExceptionally(t)
+                errorLogger.log(call.request(), ApiError(t))
+                request.deferred.completeExceptionally(ApiError(t))
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
@@ -151,7 +151,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         requestQueue.clear()
     }
 
-    private fun cancelQueue(error: Throwable) {
+    private fun cancelQueue(error: ApiError) {
         requestQueue.forEach {
             errorLogger.log(it.call.request(), error)
             it.deferred.completeExceptionally(error)

@@ -67,8 +67,8 @@ class CoroutineCallAdapterFactory private constructor(
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                errorLogger.log(call.request(), t)
-                request.deferred.completeExceptionally(t)
+                errorLogger.log(call.request(), ApiError(t))
+                request.deferred.completeExceptionally(ApiError(t))
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
