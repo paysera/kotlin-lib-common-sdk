@@ -25,6 +25,8 @@ class ApiError : Exception {
 
     constructor(message: String, error: Throwable?) : super(message, error)
 
+    constructor(message: String) : super(message)
+
 
     fun isNoInternet(): Boolean {
         return error == "no_internet"

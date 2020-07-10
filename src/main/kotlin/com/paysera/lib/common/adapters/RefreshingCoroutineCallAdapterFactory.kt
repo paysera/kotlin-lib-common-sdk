@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
-import com.paysera.lib.common.interfaces.LoggerInterface
+import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -15,7 +15,7 @@ import java.lang.reflect.Type
 class RefreshingCoroutineCallAdapterFactory private constructor(
     private val credentials: ApiCredentials,
     private val tokenRefresher: TokenRefresherInterface,
-    private val logger: LoggerInterface
+    private val errorLogger: ErrorLoggerInterface
 ) : CallAdapter.Factory(), CancellableAdapterFactory {
 
     companion object {
@@ -23,8 +23,8 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         operator fun invoke(
             credentials: ApiCredentials,
             tokenRefresher: TokenRefresherInterface,
-            logger: LoggerInterface
-        ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher, logger)
+            errorLogger: ErrorLoggerInterface
+        ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher, errorLogger)
     }
 
     private val gson = Gson()
@@ -92,7 +92,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                logger.log(call.request(), t)
+                errorLogger.log(call.request(), t)
                 request.deferred.completeExceptionally(t)
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
@@ -117,7 +117,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                         }
                     } else {
                         mapError(response).also {
-                            logger.log(call.request(), it)
+                            errorLogger.log(call.request(), it)
                             request.deferred.completeExceptionally(it)
                         }
                     }
@@ -153,20 +153,22 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
     private fun cancelQueue(error: Throwable) {
         requestQueue.forEach {
-            logger.log(it.call.request(), error)
+            errorLogger.log(it.call.request(), error)
             it.deferred.completeExceptionally(error)
         }
         requestQueue.clear()
     }
 
-    private fun mapError(response: Response<Any>): Throwable {
+    private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
         return try {
             gson.fromJson(responseString, ApiError::class.java).also {
                 it.statusCode = response.code()
             }
         } catch (e: Throwable) {
-            Throwable(responseString)
+            ApiError(message = responseString).also {
+                it.statusCode = response.code()
+            }
         }
     }
 

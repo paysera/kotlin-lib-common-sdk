@@ -2,7 +2,7 @@ package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
 import com.paysera.lib.common.exceptions.ApiError
-import com.paysera.lib.common.interfaces.LoggerInterface
+import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -10,14 +10,14 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 class CoroutineCallAdapterFactory private constructor(
-    private val logger: LoggerInterface
+    private val errorLogger: ErrorLoggerInterface
 ): CallAdapter.Factory() {
 
     companion object {
         @JvmStatic @JvmName("create")
         operator fun invoke(
-            logger: LoggerInterface
-        ) = CoroutineCallAdapterFactory(logger)
+            errorLogger: ErrorLoggerInterface
+        ) = CoroutineCallAdapterFactory(errorLogger)
     }
 
     private val gson = Gson()
@@ -67,7 +67,7 @@ class CoroutineCallAdapterFactory private constructor(
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                logger.log(call.request(), t)
+                errorLogger.log(call.request(), t)
                 request.deferred.completeExceptionally(t)
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
@@ -80,7 +80,7 @@ class CoroutineCallAdapterFactory private constructor(
                     }
                 } else {
                     mapError(response).also {
-                        logger.log(call.request(), it)
+                        errorLogger.log(call.request(), it)
                         request.deferred.completeExceptionally(it)
                     }
                 }
@@ -88,14 +88,16 @@ class CoroutineCallAdapterFactory private constructor(
         })
     }
 
-    private fun mapError(response: Response<Any>): Throwable {
+    private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
         return try {
             gson.fromJson(responseString, ApiError::class.java).also {
                 it.statusCode = response.code()
             }
         } catch (e: Throwable) {
-            Throwable(responseString)
+            ApiError(message = responseString).also {
+                it.statusCode = response.code()
+            }
         }
     }
 
