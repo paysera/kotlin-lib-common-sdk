@@ -6,6 +6,7 @@ import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
 import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
+import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
@@ -22,7 +23,8 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     private val userAgent: String?,
     private val credentials: ApiCredentials?,
     private val timeout: Long? = null,
-    private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC
+    private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC,
+    private val errorLogger: ErrorLoggerInterface
 ) {
     abstract val baseUrl: String
     abstract val certifiedHosts: List<String>
@@ -33,9 +35,9 @@ abstract class BaseApiFactory<T : BaseApiClient>(
         val okHttpClient = createOkHttpClient()
         val callAdapterFactory = when {
             tokenRefresher != null && credentials != null -> {
-                RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher)
+                RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher, errorLogger)
             }
-            else -> CoroutineCallAdapterFactory()
+            else -> CoroutineCallAdapterFactory(errorLogger)
         }
         with(Retrofit.Builder()) {
             baseUrl(baseUrl)

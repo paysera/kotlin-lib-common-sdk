@@ -2,17 +2,22 @@ package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-class CoroutineCallAdapterFactory : CallAdapter.Factory() {
+class CoroutineCallAdapterFactory private constructor(
+    private val errorLogger: ErrorLoggerInterface
+): CallAdapter.Factory() {
 
     companion object {
         @JvmStatic @JvmName("create")
-        operator fun invoke() = CoroutineCallAdapterFactory()
+        operator fun invoke(
+            errorLogger: ErrorLoggerInterface
+        ) = CoroutineCallAdapterFactory(errorLogger)
     }
 
     private val gson = Gson()
@@ -62,7 +67,8 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
     private fun makeRequest(request: CallAdapterRequest) {
         request.call.enqueue(object : Callback<Any> {
             override fun onFailure(call: Call<Any>, t: Throwable) {
-                request.deferred.completeExceptionally(t)
+                errorLogger.log(call.request(), ApiError(t))
+                request.deferred.completeExceptionally(ApiError(t))
             }
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
@@ -73,20 +79,25 @@ class CoroutineCallAdapterFactory : CallAdapter.Factory() {
                         (request.deferred as? CompletableDeferred<Any>)?.complete(response.body()!!)
                     }
                 } else {
-                    request.deferred.completeExceptionally(mapError(response))
+                    mapError(response).also {
+                        errorLogger.log(call.request(), it)
+                        request.deferred.completeExceptionally(it)
+                    }
                 }
             }
         })
     }
 
-    private fun mapError(response: Response<Any>): Exception {
+    private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
         return try {
-            gson.fromJson<ApiError>(responseString, ApiError::class.java).apply {
-                statusCode = response.code()
+            gson.fromJson(responseString, ApiError::class.java).also {
+                it.statusCode = response.code()
             }
-        } catch (e: Exception) {
-            Exception(responseString)
+        } catch (e: Throwable) {
+            ApiError(message = responseString).also {
+                it.statusCode = response.code()
+            }
         }
     }
 
