@@ -163,7 +163,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
         return try {
-            moshi.adapter(ApiError::class.java).fromJson(responseString)?.also {
+            moshi.adapter(ApiError::class.java).fromJson(responseString)!!.also {
                 it.statusCode = response.code()
             }
         } catch (e: Throwable) {
