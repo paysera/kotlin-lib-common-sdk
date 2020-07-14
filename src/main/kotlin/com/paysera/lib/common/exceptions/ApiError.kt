@@ -1,6 +1,9 @@
 package com.paysera.lib.common.exceptions
 
 import java.lang.Exception
+import java.net.SocketException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class ApiError : Exception {
 
@@ -19,8 +22,14 @@ class ApiError : Exception {
 
     constructor(message: String, error: Throwable?) : super(message, error)
 
+    constructor(message: String) : super(message)
 
+    constructor(cause: Throwable?) : super(cause)
+    
     fun isNoInternet(): Boolean {
+        if (cause is UnknownHostException || cause is SocketTimeoutException || cause is SocketException) {
+            return true
+        }
         return error == "no_internet"
     }
 
