@@ -50,6 +50,5 @@ class ClaimImpl(private val value: Any) : BaseClaim() {
         } catch (e: Exception) {
             throw DecodeException("Failed to decode claim as list", e)
         }
-
     }
 }
