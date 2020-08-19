@@ -205,6 +205,8 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     //  CancellableAdapterFactory
 
     override fun cancelCalls() {
-        cancelQueue(ApiError.cancelled())
+        synchronized(this@RefreshingCoroutineCallAdapterFactory) {
+            cancelQueue(ApiError.cancelled())
+        }
     }
 }
