@@ -20,15 +20,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(
+    private val baseUrl: String,
     private val userAgent: String?,
     private val credentials: ApiCredentials?,
+    private val certifiedHosts: List<String> = emptyList(),
     private val timeout: Long? = null,
     private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC,
     private val errorLogger: ErrorLoggerInterface
 ) {
-    abstract val baseUrl: String
-    abstract val certifiedHosts: List<String>
-
     abstract fun createClient(tokenRefresher: TokenRefresherInterface?): T
 
     protected fun createRetrofit(tokenRefresher: TokenRefresherInterface?): RetrofitConfiguration {
@@ -90,7 +89,9 @@ abstract class BaseApiFactory<T : BaseApiClient>(
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
             retryOnConnectionFailure(false)
-            certificatePinner(certificatePinnerBuilder.build())
+            if (certifiedHosts.isNotEmpty()) {
+                certificatePinner(certificatePinnerBuilder.build())
+            }
             build()
         }
     }
