@@ -49,7 +49,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
                     credentials.hasExpired() -> {
-                        requestQueue.add(CallAdapterRequest(call.clone(), deferred))
+                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred))
                         invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred))
@@ -78,7 +78,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
                     credentials.hasExpired() -> {
-                        requestQueue.add(CallAdapterRequest(call.clone(), deferred, true))
+                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred, true))
                         invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred, true))
@@ -111,7 +111,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                             if (credentials.hasRecentlyRefreshed()) {
                                 makeRequest(request.clone())
                             } else {
-                                requestQueue.add(request.clone())
+                                addRequestToQueue(request.clone())
                                 invokeRefreshToken()
                             }
                         }
@@ -142,6 +142,15 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 isRefreshTokenProcessing = false
             }
         }
+    }
+
+    private fun addRequestToQueue(request: CallAdapterRequest) {
+        if (requestQueue.size >= 100) {
+            errorLogger.log(request.call.request(), ApiError.queueOverflow())
+            request.deferred.completeExceptionally(ApiError.queueOverflow())
+            return
+        }
+        requestQueue.add(request)
     }
 
     private fun resumeQueue() {
