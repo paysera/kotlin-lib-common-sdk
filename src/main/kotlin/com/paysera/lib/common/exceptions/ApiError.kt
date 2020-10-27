@@ -39,6 +39,10 @@ class ApiError : Exception {
         return error == "no_internet"
     }
 
+    fun isQueueOverflow(): Boolean {
+        return error == "queue_overflow"
+    }
+
     fun isUnauthorized(): Boolean {
         return error == "unauthorized"
     }
@@ -72,6 +76,10 @@ class ApiError : Exception {
 
         fun cancelled(): ApiError {
             return ApiError("cancelled")
+        }
+
+        fun queueOverflow(): ApiError {
+            return ApiError("queue_overflow")
         }
     }
 }
