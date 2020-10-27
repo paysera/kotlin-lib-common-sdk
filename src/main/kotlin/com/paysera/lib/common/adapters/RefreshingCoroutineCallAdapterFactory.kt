@@ -155,6 +155,8 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             }
             errorLogger.log(request.call.request(), error)
             request.deferred.completeExceptionally(error)
+
+            cancelQueue(ApiError.cancelled())
             return
         }
         requestQueue.add(request)
