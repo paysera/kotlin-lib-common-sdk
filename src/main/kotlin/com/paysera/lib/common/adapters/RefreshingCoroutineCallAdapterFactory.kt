@@ -30,6 +30,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     private val gson = Gson()
     private val requestQueue = mutableListOf<CallAdapterRequest>()
     private var isRefreshTokenProcessing = false
+    private var tokenRefreshStartTimestamp = 0L
 
     private val bodyCallAdapter = object : CallAdapter<Any, Deferred<Any>> {
 
@@ -49,7 +50,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
                     credentials.hasExpired() -> {
-                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred))
+                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred), 0)
                         invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred))
@@ -78,7 +79,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
                     credentials.hasExpired() -> {
-                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred, true))
+                        addRequestToQueue(CallAdapterRequest(call.clone(), deferred, true), 1)
                         invokeRefreshToken()
                     }
                     else -> makeRequest(CallAdapterRequest(call, deferred, true))
@@ -111,7 +112,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                             if (credentials.hasRecentlyRefreshed()) {
                                 makeRequest(request.clone())
                             } else {
-                                addRequestToQueue(request.clone())
+                                addRequestToQueue(request.clone(), 2)
                                 invokeRefreshToken()
                             }
                         }
@@ -131,6 +132,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
             return
         }
         isRefreshTokenProcessing = true
+        tokenRefreshStartTimestamp = System.currentTimeMillis()
 
         tokenRefresher.refreshToken().invokeOnCompletion { error ->
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
@@ -144,10 +146,15 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         }
     }
 
-    private fun addRequestToQueue(request: CallAdapterRequest) {
+    private fun addRequestToQueue(request: CallAdapterRequest, callerPosition: Int) {
         if (requestQueue.size >= 100) {
-            errorLogger.log(request.call.request(), ApiError.queueOverflow())
-            request.deferred.completeExceptionally(ApiError.queueOverflow())
+            val error = ApiError.queueOverflow().also {
+                it.description = "Refresh token execution duration: " +
+                    "${System.currentTimeMillis() - tokenRefreshStartTimestamp}, " +
+                    "Caller position: $callerPosition"
+            }
+            errorLogger.log(request.call.request(), error)
+            request.deferred.completeExceptionally(error)
             return
         }
         requestQueue.add(request)
