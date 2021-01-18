@@ -1,5 +1,6 @@
 package com.paysera.lib.common.retrofit
 
+import com.babylon.certificatetransparency.certificateTransparencyInterceptor
 import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
@@ -10,7 +11,6 @@ import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
-import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.money.Money
@@ -61,12 +61,6 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     }
 
     private fun createOkHttpClient(): OkHttpClient {
-        val certificatePinnerBuilder = CertificatePinner.Builder().apply {
-            certifiedHosts.forEach {
-                add(it, "sha256/K8WscGYwD51wz79WudzZPDSXFRYrKM+e78Y5YQZJG3k=")
-                add(it, "sha256/9ay/M3fmRBbc/7R5Nqts0SuDQK8KjAHUSZlLCxEPsH0=")
-            }
-        }
         return with(OkHttpClient().newBuilder()) {
             timeout?.let {
                 readTimeout(it, TimeUnit.MILLISECONDS)
@@ -88,10 +82,14 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 }
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
-            retryOnConnectionFailure(false)
             if (certifiedHosts.isNotEmpty()) {
-                certificatePinner(certificatePinnerBuilder.build())
+                addNetworkInterceptor(certificateTransparencyInterceptor {
+                    certifiedHosts.forEach { certifiedHost ->
+                        +certifiedHost
+                    }
+                })
             }
+            retryOnConnectionFailure(false)
             build()
         }
     }
