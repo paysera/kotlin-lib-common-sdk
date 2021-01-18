@@ -11,7 +11,6 @@ import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
-import okhttp3.CertificatePinner
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.money.Money
