@@ -83,11 +83,13 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 }
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
-            addNetworkInterceptor(certificateTransparencyInterceptor {
-                certifiedHosts.forEach { certifiedHost ->
-                    +certifiedHost
-                }
-            })
+            if (certifiedHosts.isNotEmpty()) {
+                addNetworkInterceptor(certificateTransparencyInterceptor {
+                    certifiedHosts.forEach { certifiedHost ->
+                        +certifiedHost
+                    }
+                })
+            }
             retryOnConnectionFailure(false)
             build()
         }
