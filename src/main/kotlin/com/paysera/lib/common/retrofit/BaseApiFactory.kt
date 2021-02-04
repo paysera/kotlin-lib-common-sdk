@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(
     private val baseUrl: String,
-    private val locale: String,
+    private val locale: String?,
     private val userAgent: String?,
     private val credentials: ApiCredentials?,
     private val certifiedHosts: List<String> = emptyList(),
@@ -72,7 +72,9 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 addInterceptor { chain ->
                     val originalRequest = chain.request()
                     val builder = originalRequest.newBuilder()
-                    builder.header("Accept-Language", locale)
+                    locale?.let {
+                        builder.header("Accept-Language", it)
+                    }
                     userAgent?.let {
                         builder.header("User-Agent", it)
                     }
