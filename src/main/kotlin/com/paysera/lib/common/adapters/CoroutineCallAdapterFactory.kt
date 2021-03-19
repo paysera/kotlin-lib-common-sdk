@@ -1,8 +1,9 @@
 package com.paysera.lib.common.adapters
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.ErrorLoggerInterface
+import com.paysera.lib.common.serializers.ApiErrorDeserializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -11,16 +12,19 @@ import java.lang.reflect.Type
 
 class CoroutineCallAdapterFactory private constructor(
     private val errorLogger: ErrorLoggerInterface
-): CallAdapter.Factory() {
+) : CallAdapter.Factory() {
 
     companion object {
-        @JvmStatic @JvmName("create")
+        @JvmStatic
+        @JvmName("create")
         operator fun invoke(
             errorLogger: ErrorLoggerInterface
         ) = CoroutineCallAdapterFactory(errorLogger)
     }
 
-    private val gson = Gson()
+    private val gson = GsonBuilder()
+        .registerTypeAdapter(ApiError::class.java, ApiErrorDeserializer())
+        .create()
 
     private val bodyCallAdapter = object : CallAdapter<Any, Deferred<Any>> {
 
@@ -70,6 +74,7 @@ class CoroutineCallAdapterFactory private constructor(
                 errorLogger.log(call.request(), ApiError(t))
                 request.deferred.completeExceptionally(ApiError(t))
             }
+
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
                     @Suppress("UNCHECKED_CAST")

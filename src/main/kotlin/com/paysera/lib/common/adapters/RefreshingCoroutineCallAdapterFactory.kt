@@ -1,11 +1,12 @@
 package com.paysera.lib.common.adapters
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
 import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
+import com.paysera.lib.common.serializers.ApiErrorDeserializer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -19,7 +20,8 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 ) : CallAdapter.Factory(), CancellableAdapterFactory {
 
     companion object {
-        @JvmStatic @JvmName("create")
+        @JvmStatic
+        @JvmName("create")
         operator fun invoke(
             credentials: ApiCredentials,
             tokenRefresher: TokenRefresherInterface,
@@ -27,7 +29,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
         ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher, errorLogger)
     }
 
-    private val gson = Gson()
+    private val gson = GsonBuilder()
+        .registerTypeAdapter(ApiError::class.java, ApiErrorDeserializer())
+        .create()
     private val requestQueue = mutableListOf<CallAdapterRequest>()
     private var isRefreshTokenProcessing = false
     private var tokenRefreshStartTimestamp = 0L
@@ -96,6 +100,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                 errorLogger.log(call.request(), ApiError(t))
                 request.deferred.completeExceptionally(ApiError(t))
             }
+
             override fun onResponse(call: Call<Any>, response: Response<Any>) {
                 if (response.isSuccessful) {
                     @Suppress("UNCHECKED_CAST")
