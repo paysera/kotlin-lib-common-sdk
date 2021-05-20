@@ -83,7 +83,7 @@ publishing {
                 developers {
                     developer {
                         id.set("payseradev")
-                        name.set("App Developers Paysera")
+                        name.set("Paysera App Developers")
                         email.set("app-developers@paysera.net")
                     }
                 }
