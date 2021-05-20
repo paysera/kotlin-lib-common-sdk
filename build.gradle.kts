@@ -27,7 +27,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven("https://dl.bintray.com/babylonpartners/maven")
 }
 
 dependencies {
@@ -83,9 +82,9 @@ publishing {
                 }
                 developers {
                     developer {
-                        id.set("gibert.parreno@paysera")
-                        name.set("Gilbert Parreño")
-                        email.set("gilbert.parreno@paysera.net")
+                        id.set("payseradev")
+                        name.set("App Developers Paysera")
+                        email.set("app-developers@paysera.net")
                     }
                 }
             }

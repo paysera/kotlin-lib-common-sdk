@@ -11,7 +11,7 @@ object ApplicationDependencies {
     private const val loggingInterceptor = "com.squareup.okhttp3:logging-interceptor:${ApplicationDependencyVersions.loggingInterceptor}"
     private const val gson = "com.google.code.gson:gson:${ApplicationDependencyVersions.gson}"
     private const val jodaMoney = "org.joda:joda-money:${ApplicationDependencyVersions.jodaMoney}"
-    private const val certificateTransparency = "com.babylon.certificatetransparency:certificatetransparency:${ApplicationDependencyVersions.certificateTransparency}"
+    private const val certificateTransparency = "com.appmattus.certificatetransparency:certificatetransparency:${ApplicationDependencyVersions.certificateTransparency}"
 
     // testing
     const val junit = "junit:junit:${ApplicationDependencyVersions.junit}"
