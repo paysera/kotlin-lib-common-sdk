@@ -1,21 +1,21 @@
 package com.paysera.lib.common.entities
 
+import com.paysera.lib.common.interfaces.BaseApiCredentials
 import com.paysera.lib.common.jwt.JWT
-import java.lang.Exception
 import java.util.*
 
-class ApiCredentials constructor(
+class AuthorizationApiCredentials constructor(
     token: String?,
     private val expirationLeeway: Long
-) {
+) : BaseApiCredentials {
 
-    var token: String? = null
+    override var token: String? = null
         set(value) {
             decodeJWT(value)
             field = value
         }
         get() {
-            return jwt?.toString()
+            return "Bearer %s".format(jwt?.toString())
         }
 
     private var jwt: JWT? = null
@@ -24,7 +24,9 @@ class ApiCredentials constructor(
         decodeJWT(token)
     }
 
-    fun hasExpired(): Boolean {
+    override var headerKey = "Authorization"
+
+    override fun hasExpired(): Boolean {
         val expirationTime = jwt?.expiresAt?.time
         if (expirationTime != null) {
             return expirationTime.minus(Date().time) < expirationLeeway
@@ -32,7 +34,7 @@ class ApiCredentials constructor(
         return true
     }
 
-    fun hasRecentlyRefreshed(): Boolean {
+    override fun hasRecentlyRefreshed(): Boolean {
         val issuanceTime = jwt?.issuedAt?.time
         if (issuanceTime != null) {
             return Date().time.minus(issuanceTime) < 15 * 1000
