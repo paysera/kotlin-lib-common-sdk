@@ -1,8 +1,8 @@
 package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
-import com.paysera.lib.common.entities.ApiCredentials
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.interfaces.BaseApiCredentials
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
 import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
@@ -13,7 +13,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 class RefreshingCoroutineCallAdapterFactory private constructor(
-    private val credentials: ApiCredentials,
+    private val credentials: BaseApiCredentials,
     private val tokenRefresher: TokenRefresherInterface,
     private val errorLogger: ErrorLoggerInterface
 ) : CallAdapter.Factory(), CancellableAdapterFactory {
@@ -21,7 +21,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
     companion object {
         @JvmStatic @JvmName("create")
         operator fun invoke(
-            credentials: ApiCredentials,
+            credentials: BaseApiCredentials,
             tokenRefresher: TokenRefresherInterface,
             errorLogger: ErrorLoggerInterface
         ) = RefreshingCoroutineCallAdapterFactory(credentials, tokenRefresher, errorLogger)
