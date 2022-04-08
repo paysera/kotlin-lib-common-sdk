@@ -15,7 +15,7 @@ class AuthorizationApiCredentials constructor(
             field = value
         }
         get() {
-            return "Bearer %s".format(jwt?.toString())
+            return jwt?.toString()
         }
 
     private var jwt: JWT? = null
@@ -23,8 +23,6 @@ class AuthorizationApiCredentials constructor(
     init {
         decodeJWT(token)
     }
-
-    override var headerKey = "Authorization"
 
     override fun hasExpired(): Boolean {
         val expirationTime = jwt?.expiresAt?.time

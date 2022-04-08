@@ -17,8 +17,6 @@ class XAuthTokenApiCredentials(
             return Calendar.getInstance().time.time / 1000
         }
 
-    override var headerKey = "x-auth-token"
-
     override fun hasExpired(): Boolean {
         if (accessTokenExpiresAt == accessTokenIssuedAt) {
             return false
