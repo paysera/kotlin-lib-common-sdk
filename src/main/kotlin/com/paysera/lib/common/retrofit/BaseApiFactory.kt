@@ -5,6 +5,7 @@ import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
 import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
+import com.paysera.lib.common.entities.AuthorizationApiCredentials
 import com.paysera.lib.common.entities.XAuthTokenApiCredentials
 import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.BaseApiCredentials
@@ -79,13 +80,14 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                     userAgent?.let {
                         builder.header("User-Agent", it)
                     }
-                    credentials?.let {
-                        builder.header(it.headerKey, it.token ?: "")
+                    (credentials as? AuthorizationApiCredentials)?.let {
+                        builder.header("Authorization", "Bearer ${it.token}")
                     }
                     (credentials as? XAuthTokenApiCredentials)?.let {
                         it.xApiKey?.let {
                             builder.header("x-api-key", it)
                         }
+                        builder.header("x-auth-token", it.token ?: "")
                         builder.header("x-locale", it.locale)
                     }
                     val modifiedRequest = builder.build()
