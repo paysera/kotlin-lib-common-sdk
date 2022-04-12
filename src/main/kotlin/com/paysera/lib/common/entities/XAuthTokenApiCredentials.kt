@@ -4,8 +4,8 @@ import com.paysera.lib.common.interfaces.BaseApiCredentials
 import java.util.*
 
 class XAuthTokenApiCredentials(
-    val accessTokenExpiresAt: Date? = null,
-    val accessTokenIssuedAt: Date? = null,
+    var accessTokenExpiresAt: Date? = null,
+    var accessTokenIssuedAt: Date? = null,
     override var token: String? = null,
     val xApiKey: String? = null
 ) : BaseApiCredentials {
