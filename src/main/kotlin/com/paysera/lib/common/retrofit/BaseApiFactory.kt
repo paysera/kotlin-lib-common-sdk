@@ -1,6 +1,5 @@
 package com.paysera.lib.common.retrofit
 
-import com.babylon.certificatetransparency.certificateTransparencyInterceptor
 import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
@@ -26,7 +25,6 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     private val locale: String?,
     private val userAgent: String?,
     private val credentials: BaseApiCredentials?,
-    private val certifiedHosts: List<String> = emptyList(),
     private val timeout: Long? = null,
     private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC,
     private val errorLogger: ErrorLoggerInterface
@@ -95,13 +93,6 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 }
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
-            if (certifiedHosts.isNotEmpty()) {
-                addNetworkInterceptor(certificateTransparencyInterceptor {
-                    certifiedHosts.forEach { certifiedHost ->
-                        +certifiedHost
-                    }
-                })
-            }
             retryOnConnectionFailure(false)
             build()
         }
