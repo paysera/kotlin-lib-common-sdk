@@ -1,6 +1,7 @@
 package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
+import com.paysera.lib.common.entities.RetryHandlerCredentials
 import com.paysera.lib.common.exceptions.ApiError
 import com.paysera.lib.common.interfaces.BaseApiCredentials
 import com.paysera.lib.common.interfaces.CancellableAdapterFactory
@@ -103,6 +104,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                         (request.deferred as? CompletableDeferred<Response<Any>>)?.complete(response)
                     } else {
                         (request.deferred as? CompletableDeferred<Any>)?.complete(response.body()!!)
+                    }
+                    (credentials as? RetryHandlerCredentials)?.let {
+                        it.retryCount = 0
                     }
                 } else {
                     val exception = HttpException(response)
