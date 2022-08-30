@@ -12,6 +12,7 @@ import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import com.paysera.lib.common.interfaces.TokenRefresherInterface
 import com.paysera.lib.common.serializers.DateSerializer
 import com.paysera.lib.common.serializers.MoneySerializer
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.joda.money.Money
@@ -27,7 +28,8 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     private val credentials: BaseApiCredentials?,
     private val timeout: Long? = null,
     private val httpLoggingInterceptorLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.BASIC,
-    private val errorLogger: ErrorLoggerInterface
+    private val errorLogger: ErrorLoggerInterface,
+    private val certificateInterceptor: Interceptor? = null
 ) {
     abstract fun createClient(tokenRefresher: TokenRefresherInterface?): T
 
@@ -93,6 +95,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 }
             }
             addInterceptor(HttpLoggingInterceptor().setLevel(httpLoggingInterceptorLevel))
+            certificateInterceptor?.let { addNetworkInterceptor(it) }
             retryOnConnectionFailure(false)
             build()
         }
