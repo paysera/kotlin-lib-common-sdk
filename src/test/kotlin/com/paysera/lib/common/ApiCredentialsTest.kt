@@ -1,6 +1,6 @@
 package com.paysera.lib.common
 
-import com.paysera.lib.common.entities.XAuthTokenApiCredentials
+import com.paysera.lib.common.entities.InRentoApiCredentials
 import org.junit.Test
 import java.util.*
 
@@ -11,7 +11,7 @@ class ApiCredentialsTest {
         val accessTokenExpiresAt = Calendar.getInstance().apply {
             add(Calendar.SECOND, 121)
         }.time
-        val xAuthApiCredentials = XAuthTokenApiCredentials(
+        val xAuthApiCredentials = InRentoApiCredentials(
             accessTokenExpiresAt = accessTokenExpiresAt
         )
         assert(!xAuthApiCredentials.hasExpired())
@@ -22,7 +22,7 @@ class ApiCredentialsTest {
         val accessTokenExpiresAt = Calendar.getInstance().apply {
             add(Calendar.SECOND, 60)
         }.time
-        val xAuthApiCredentials = XAuthTokenApiCredentials(
+        val xAuthApiCredentials = InRentoApiCredentials(
             accessTokenExpiresAt = accessTokenExpiresAt
         )
         assert(xAuthApiCredentials.hasExpired())
@@ -33,7 +33,7 @@ class ApiCredentialsTest {
         val accessTokenIssuedAt = Calendar.getInstance().apply {
             add(Calendar.SECOND, 16)
         }.time
-        val xAuthApiCredentials = XAuthTokenApiCredentials(
+        val xAuthApiCredentials = InRentoApiCredentials(
             accessTokenIssuedAt = accessTokenIssuedAt
         )
         assert(!xAuthApiCredentials.hasRecentlyRefreshed())
@@ -44,7 +44,7 @@ class ApiCredentialsTest {
         val accessTokenIssuedAt = Calendar.getInstance().apply {
             add(Calendar.SECOND, 10)
         }.time
-        val xAuthApiCredentials = XAuthTokenApiCredentials(
+        val xAuthApiCredentials = InRentoApiCredentials(
             accessTokenIssuedAt = accessTokenIssuedAt
         )
         assert(xAuthApiCredentials.hasRecentlyRefreshed())
