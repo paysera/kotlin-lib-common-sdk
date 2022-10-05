@@ -101,6 +101,9 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                     } else {
                         (request.deferred as? CompletableDeferred<Any>)?.complete(response.body()!!)
                     }
+                    (credentials as? RetryApiCredentials)?.let {
+                        it.retryCount = 0
+                    }
                 } else {
                     val exception = HttpException(response)
                     val isUnauthorized = exception.code() == 401
