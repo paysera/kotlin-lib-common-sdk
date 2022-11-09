@@ -1,13 +1,14 @@
 package com.paysera.lib.common.entities
 
 import com.paysera.lib.common.interfaces.BaseApiCredentials
+import com.paysera.lib.common.interfaces.RefreshingApiCredentials
 import com.paysera.lib.common.jwt.JWT
 import java.util.*
 
-class AuthorizationApiCredentials constructor(
+class PayseraApiCredentials constructor(
     token: String?,
     private val expirationLeeway: Long
-) : BaseApiCredentials {
+) : BaseApiCredentials, RefreshingApiCredentials {
 
     override var token: String? = null
         set(value) {

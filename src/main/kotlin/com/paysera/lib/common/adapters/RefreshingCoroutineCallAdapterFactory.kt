@@ -2,10 +2,7 @@ package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
 import com.paysera.lib.common.exceptions.ApiError
-import com.paysera.lib.common.interfaces.BaseApiCredentials
-import com.paysera.lib.common.interfaces.CancellableAdapterFactory
-import com.paysera.lib.common.interfaces.ErrorLoggerInterface
-import com.paysera.lib.common.interfaces.TokenRefresherInterface
+import com.paysera.lib.common.interfaces.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import retrofit2.*
@@ -49,7 +46,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
-                    credentials.hasExpired() -> {
+                    (credentials as? RefreshingApiCredentials)?.hasExpired() == true -> {
                         addRequestToQueue(CallAdapterRequest(call.clone(), deferred), 0)
                         invokeRefreshToken()
                     }
@@ -78,7 +75,7 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
             synchronized(this@RefreshingCoroutineCallAdapterFactory) {
                 when {
-                    credentials.hasExpired() -> {
+                    (credentials as? RefreshingApiCredentials)?.hasExpired() == true -> {
                         addRequestToQueue(CallAdapterRequest(call.clone(), deferred, true), 1)
                         invokeRefreshToken()
                     }
@@ -104,12 +101,16 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
                     } else {
                         (request.deferred as? CompletableDeferred<Any>)?.complete(response.body()!!)
                     }
+                    (credentials as? RetryApiCredentials)?.let {
+                        it.retryCount = 0
+                    }
                 } else {
                     val exception = HttpException(response)
                     val isUnauthorized = exception.code() == 401
-                    if (isUnauthorized) {
+                    val refreshingApiCredentials = credentials as? RefreshingApiCredentials
+                    if (isUnauthorized && refreshingApiCredentials != null) {
                         synchronized(this@RefreshingCoroutineCallAdapterFactory) {
-                            if (credentials.hasRecentlyRefreshed()) {
+                            if (refreshingApiCredentials.hasRecentlyRefreshed()) {
                                 makeRequest(request.clone())
                             } else {
                                 addRequestToQueue(request.clone(), 2)

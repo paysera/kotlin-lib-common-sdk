@@ -4,8 +4,9 @@ import com.google.gson.FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES
 import com.google.gson.GsonBuilder
 import com.paysera.lib.common.adapters.CoroutineCallAdapterFactory
 import com.paysera.lib.common.adapters.RefreshingCoroutineCallAdapterFactory
-import com.paysera.lib.common.entities.AuthorizationApiCredentials
-import com.paysera.lib.common.entities.XAuthTokenApiCredentials
+import com.paysera.lib.common.entities.PayseraApiCredentials
+import com.paysera.lib.common.entities.CustomApiCredentials
+import com.paysera.lib.common.entities.InRentoApiCredentials
 import com.paysera.lib.common.extensions.cancellableCallAdapterFactories
 import com.paysera.lib.common.interfaces.BaseApiCredentials
 import com.paysera.lib.common.interfaces.ErrorLoggerInterface
@@ -74,21 +75,21 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                 addInterceptor { chain ->
                     val originalRequest = chain.request()
                     val builder = originalRequest.newBuilder()
-                    locale?.let {
-                        builder.header("Accept-Language", it)
-                    }
-                    userAgent?.let {
-                        builder.header("User-Agent", it)
-                    }
-                    (credentials as? AuthorizationApiCredentials)?.let {
+                    (credentials as? PayseraApiCredentials)?.let {
+                        locale?.let {
+                            builder.header("Accept-Language", it)
+                        }
+                        userAgent?.let {
+                            builder.header("User-Agent", it)
+                        }
                         builder.header("Authorization", "Bearer ${it.token}")
                     }
-                    (credentials as? XAuthTokenApiCredentials)?.let {
-                        it.xApiKey?.let {
-                            builder.header("x-api-key", it)
-                        }
+                    (credentials as? InRentoApiCredentials)?.let {
                         builder.header("x-auth-token", it.token ?: "")
                         builder.header("x-locale", it.locale)
+                    }
+                    (credentials as? CustomApiCredentials)?.let {
+                        builder.header(it.key ?: "", it.token ?: "")
                     }
                     val modifiedRequest = builder.build()
                     chain.proceed(modifiedRequest)
