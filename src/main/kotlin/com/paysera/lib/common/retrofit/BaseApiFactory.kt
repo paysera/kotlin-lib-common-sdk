@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit
 
 abstract class BaseApiFactory<T : BaseApiClient>(
     private val baseUrl: String,
-    private val locale: String?,
     private val userAgent: String?,
     private val credentials: BaseApiCredentials?,
     private val timeout: Long? = null,
@@ -76,9 +75,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                     val originalRequest = chain.request()
                     val builder = originalRequest.newBuilder()
                     (credentials as? PayseraApiCredentials)?.let {
-                        locale?.let {
-                            builder.header("Accept-Language", it)
-                        }
+                        builder.header("Accept-Language", it.locale)
                         userAgent?.let {
                             builder.header("User-Agent", it)
                         }

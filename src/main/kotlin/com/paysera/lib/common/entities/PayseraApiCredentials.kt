@@ -7,6 +7,7 @@ import java.util.*
 
 class PayseraApiCredentials constructor(
     token: String?,
+    var locale: String = "en",
     private val expirationLeeway: Long
 ) : BaseApiCredentials, RefreshingApiCredentials {
 
