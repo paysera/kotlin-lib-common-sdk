@@ -10,7 +10,7 @@ class PayseraApiCredentials constructor(
     private val expirationLeeway: Long
 ) : BaseApiCredentials, RefreshingApiCredentials {
 
-    var locale: String? = null
+    var locale: String = "en"
 
     override var token: String? = null
         set(value) {

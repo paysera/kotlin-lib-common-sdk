@@ -75,9 +75,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
                     val originalRequest = chain.request()
                     val builder = originalRequest.newBuilder()
                     (credentials as? PayseraApiCredentials)?.let {
-                        it.locale?.let {
-                            builder.header("Accept-Language", it)
-                        }
+                        builder.header("Accept-Language", it.locale)
                         userAgent?.let {
                             builder.header("User-Agent", it)
                         }
