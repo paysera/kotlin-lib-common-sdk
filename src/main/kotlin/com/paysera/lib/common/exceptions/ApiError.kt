@@ -60,6 +60,10 @@ class ApiError : Exception {
         return error == "invalid_timestamp"
     }
 
+    fun isRateLimitExceeded(): Boolean {
+        return error == "rate_limit_exceeded"
+    }
+
     companion object {
 
         fun noInternet(): ApiError {
