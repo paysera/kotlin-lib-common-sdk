@@ -61,7 +61,7 @@ class ApiError : Exception {
     }
 
     fun isRateLimitExceeded(): Boolean {
-        return error == "rate_limit_exceeded"
+        return error == "rate_limit_exceeded" && statusCode == 429
     }
 
     companion object {
