@@ -32,7 +32,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
     private val certificateInterceptor: Interceptor? = null
 ) {
     abstract fun createClient(tokenRefresher: TokenRefresherInterface?): T
-    protected open var doOCreateGsonConverterFactory: ((gsonBuilder: GsonBuilder) -> Unit)? = null
+    protected open var doOnCreateGsonConverterFactory: ((gsonBuilder: GsonBuilder) -> Unit)? = null
 
     protected fun createRetrofit(tokenRefresher: TokenRefresherInterface?): RetrofitConfiguration {
         val okHttpClient = createOkHttpClient()
@@ -58,7 +58,7 @@ abstract class BaseApiFactory<T : BaseApiClient>(
 
     protected open fun createGsonConverterFactory(): GsonConverterFactory {
         val gsonBuilder = GsonBuilder()
-        doOCreateGsonConverterFactory?.invoke(gsonBuilder)
+        doOnCreateGsonConverterFactory?.invoke(gsonBuilder)
         gsonBuilder.setFieldNamingPolicy(LOWER_CASE_WITH_UNDERSCORES)
         gsonBuilder.registerTypeAdapter(Money::class.java, MoneySerializer())
         gsonBuilder.registerTypeAdapter(Date::class.java, DateSerializer())
