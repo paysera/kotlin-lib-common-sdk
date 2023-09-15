@@ -180,13 +180,16 @@ class RefreshingCoroutineCallAdapterFactory private constructor(
 
     private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
+        val payseraCorrelationId = response.headers()[ApiError.ERROR_HEADER_PAYSERA_CORRELATION_ID]
         return try {
             gson.fromJson(responseString, ApiError::class.java).also {
                 it.statusCode = response.code()
+                it.payseraCorrelationId = payseraCorrelationId
             }
         } catch (e: Throwable) {
             ApiError(message = responseString).also {
                 it.statusCode = response.code()
+                it.payseraCorrelationId = payseraCorrelationId
             }
         }
     }

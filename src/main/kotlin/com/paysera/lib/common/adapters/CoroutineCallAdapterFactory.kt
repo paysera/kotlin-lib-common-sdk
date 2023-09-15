@@ -2,6 +2,7 @@ package com.paysera.lib.common.adapters
 
 import com.google.gson.Gson
 import com.paysera.lib.common.exceptions.ApiError
+import com.paysera.lib.common.exceptions.ApiError.Companion.ERROR_HEADER_PAYSERA_CORRELATION_ID
 import com.paysera.lib.common.interfaces.ErrorLoggerInterface
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -90,13 +91,16 @@ class CoroutineCallAdapterFactory private constructor(
 
     private fun mapError(response: Response<Any>): ApiError {
         val responseString = response.errorBody()?.string() ?: return ApiError.unknown()
+        val payseraCorrelationId = response.headers()[ERROR_HEADER_PAYSERA_CORRELATION_ID]
         return try {
             gson.fromJson(responseString, ApiError::class.java).also {
                 it.statusCode = response.code()
+                it.payseraCorrelationId = payseraCorrelationId
             }
         } catch (e: Throwable) {
             ApiError(message = responseString).also {
                 it.statusCode = response.code()
+                it.payseraCorrelationId = payseraCorrelationId
             }
         }
     }

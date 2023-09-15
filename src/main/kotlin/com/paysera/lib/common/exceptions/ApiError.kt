@@ -1,7 +1,6 @@
 package com.paysera.lib.common.exceptions
 
 import com.google.gson.annotations.SerializedName
-import java.lang.Exception
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -19,11 +18,13 @@ class ApiError : Exception {
     var errorFields: List<ApiErrorField>? = null
     @SerializedName("error_data")
     var data: Any? = null
+    var payseraCorrelationId: String? = null
 
-    constructor(error: String? = null, description: String? = null, statusCode: Int? = null) {
+    constructor(error: String? = null, description: String? = null, statusCode: Int? = null, payseraCorrelationId: String? = null) {
         this.error = error
         this.description = description
         this.statusCode = statusCode
+        this.payseraCorrelationId = payseraCorrelationId
     }
 
     constructor(message: String, error: Throwable?) : super(message, error)
@@ -65,6 +66,8 @@ class ApiError : Exception {
     }
 
     companion object {
+
+        const val ERROR_HEADER_PAYSERA_CORRELATION_ID = "paysera-correlation-id"
 
         fun noInternet(): ApiError {
             return ApiError("no_internet")
